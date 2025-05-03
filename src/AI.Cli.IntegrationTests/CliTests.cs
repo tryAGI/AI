@@ -56,11 +56,28 @@ public class CliTests
     [Test]
     public async Task DoCommand_AutoLabeling_ShouldReturnValidOutput()
     {
-        await ("--tools github[issues] " +
+        var prompt = @"
+You are a GitHub issue labeling bot. Your task is to label issues based on their content.
+
+IMPORTANT:
+- Always retrieve issue body/comments
+- Always retrieve available labels to know what is available (because almost always there is custom labels)
+- Always call `update_issue` tool to update the issue with suitable labels, but it should be only suitable labels.
+- Don't change issue body and other data.
+- Don't ask anything additional, just do. You were run from CI/CD pipeline, so user can't provide any additional input.
+- Carefully analyze the issue body and comments to determine the most appropriate labels.
+- Carefully analyze the available labels and their descriptions to ensure you are using the correct labels.
+
+All required data provided below:
+Repository Owner: tryAGI
+Repository Name: Replicate
+Issue Number: 98
+";
+        await ("--tools github[issues,labels] " +
                "--provider openrouter " +
-               "--model free-fast " +
-               "--debug " +
-               "--input \"You work in the tryAGI/Replicate repository on the issue #98. Always retrieve issue body/comments and always retrieve available labels (because almost always there is custom labels), and always call `update_issue` tool to update the issue with suitable labels. Don't change body and other data.\"")
+               "--model google/gemini-2.5-flash-preview " +
+               //"--debug " +
+               $"--input \"{prompt}\"")
             .ShouldWork();
     }
     

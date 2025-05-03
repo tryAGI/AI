@@ -3,11 +3,11 @@ using System.CommandLine.Invocation;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Schema;
 using AI.Cli.Models;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol.Transport;
 using ModelContextProtocol.Protocol.Types;
@@ -17,7 +17,11 @@ using Tool = AI.Cli.Models.Tool;
 
 namespace AI.Cli.Commands;
 
-internal sealed class DoCommandHandler : ICommandHandler
+#pragma warning disable CA1848
+
+internal sealed class DoCommandHandler(
+    ILogger logger,
+    ILoggerFactory loggerFactory) : ICommandHandler
 {
     public Option<string> InputOption { get; } = CommonOptions.Input;
     public Option<FileInfo?> InputFileOption { get; } = CommonOptions.InputFile;
@@ -66,15 +70,22 @@ internal sealed class DoCommandHandler : ICommandHandler
         var toolsetsByTool = toolsWithToolsets
             .Where(t => t.Toolsets != null)
             .GroupBy(t => t.Tool)
-            .ToDictionary(g => g.Key, g => g.SelectMany(t => t.Toolsets!).ToArray());
+            .ToDictionary(
+                g => g.Key,
+                g => g
+                    .SelectMany(t => t.Toolsets!)
+                    .Select(x => x.Trim())
+                    .ToArray());
 
         var inputText = await Helpers.ReadInputAsync(input, inputPath).ConfigureAwait(false);
-        var llm = Helpers.GetChatModel(model, provider, debug);
+        var llm = Helpers.GetChatModel(model, provider, loggerFactory, debug);
 
         var clients = await Task.WhenAll(tools.Select(async tool =>
         {
             // Get toolsets for this tool if any
-            var toolsets = toolsetsByTool.GetValueOrDefault(tool) ?? [];
+            var toolsets = (toolsetsByTool.GetValueOrDefault(tool) ?? [])
+                .Except(["labels"])
+                .ToArray();
 
             return await McpClientFactory.CreateAsync(
                 new StdioClientTransport(
@@ -109,11 +120,14 @@ internal sealed class DoCommandHandler : ICommandHandler
                                 "run",
                                 "-i",
                                 "--rm",
-                                $"-e GITHUB_PERSONAL_ACCESS_TOKEN={Environment.GetEnvironmentVariable("GITHUB_TOKEN")}",
+                                "-e",
+                                $"GITHUB_PERSONAL_ACCESS_TOKEN={
+                                    Environment.GetEnvironmentVariable("GITHUB_TOKEN") ??
+                                    throw new InvalidOperationException("GITHUB_TOKEN environment variable is not set.")}",
                                 //"-e GITHUB_DYNAMIC_TOOLSETS=1",
-                                toolsets.Length != 0 ?
-                                    $"-e GITHUB_TOOLSETS={string.Join(',', toolsets)} "
-                                    : string.Empty,
+                                .. toolsets.Length != 0 ?
+                                    ["-e", $"GITHUB_TOOLSETS={string.Join(',', toolsets)}"]
+                                    : Array.Empty<string>(),
                                 "ghcr.io/github/github-mcp-server"
                             ],
                         },
@@ -199,36 +213,44 @@ internal sealed class DoCommandHandler : ICommandHandler
                 }).ConfigureAwait(false);
         })).ConfigureAwait(false);
 
-        var aiTools = await Task.WhenAll(clients
+        var mcpTools = await Task.WhenAll(clients
             .Select(async client => await client.ListToolsAsync().ConfigureAwait(false)))
             .ConfigureAwait(false);
 
-        Debug.WriteLine($"Found {aiTools.Length} AI functions.");
-        foreach (var aiTool in aiTools.SelectMany(x => x))
-        {
-            Debug.WriteLine($"  -- {aiTool.Name}");
-            Debug.WriteLine($"  {aiTool.Description}");
-        }
+        List<AITool> allTools =
+        [
+            .. mcpTools.SelectMany(x => x).ToArray(),
+            
+            .. tools.Contains(Tool.Filesystem)
+                ? new[]
+                {
+                    AIFunctionFactory.Create(
+                        FindFilePathsByContent,
+                        name: "FindFilePathsByContent",
+                        description: "Finds file paths by content.")
+                }
+                : [],
+            
+            .. toolsetsByTool.GetValueOrDefault(Tool.GitHub)?.Contains("labels") == true
+                ? new[]
+                {
+                    AIFunctionFactory.Create(
+                        GetAvailableLabels,
+                        name: "get_available_labels",
+                        description: "Retrieves all available labels for a GitHub repository.")
+                }
+                : [],
+        ];
+
+        logger.LogInformation("Found {Length} AI functions: {@AiTools}",
+            allTools.Count,
+            allTools);
 
         var response = await llm.GetResponseAsync(
             inputText,
             new ChatOptions
             {
-                Tools = [
-                    .. aiTools.SelectMany(x => x).ToArray(),
-                    .. tools.Contains(Tool.Filesystem)
-                        ? new [] { AIFunctionFactory.Create(
-                            FindFilePathsByContent,
-                            name: "FindFilePathsByContent",
-                            description: "Finds file paths by content.") }
-                        : [],
-                    .. tools.Contains(Tool.GitHub)
-                        ? new [] { AIFunctionFactory.Create(
-                            GetAvailableLabels,
-                            name: "GetAvailableLabelsForRepository",
-                            description: "Retrieves all available labels for a GitHub repository.") }
-                        : [],
-                ],
+                Tools = allTools,
                 ResponseFormat = format switch
                 {
                     Format.Text => ChatResponseFormat.Text,
@@ -243,6 +265,27 @@ internal sealed class DoCommandHandler : ICommandHandler
                     _ => throw new ArgumentException($"Unknown format: {format}"),
                 },
             }).ConfigureAwait(false);
+
+        foreach (var message in response.Messages)
+        {
+            // var callIds = string.Join(",", message.Contents
+            //     .OfType<FunctionCallContent>()
+            //     .Select(x => x.CallId));
+            var resultIds = string.Join(",", message.Contents
+                .OfType<FunctionResultContent>()
+                .Select(x => x.CallId));
+            var content = !string.IsNullOrWhiteSpace(resultIds)
+                ? resultIds
+                : message.Text;
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                continue;
+            }
+            
+            logger.LogInformation("{Role}: {Content}",
+                message.Role.Value,
+                content);
+        }
 
         var output = response.Text;
         if (format == Format.Lines)
@@ -317,7 +360,7 @@ internal sealed class DoCommandHandler : ICommandHandler
             [Description("The owner of the repository")] string owner,
             [Description("The name of the repository")] string name)
         {
-            var github = new GitHubClient(new ProductHeaderValue("LangChain-DO-MCP-extension"))
+            var github = new GitHubClient(new ProductHeaderValue("tryAGI-AI-MCP-extension"))
             {
                 Credentials = new Credentials(Environment.GetEnvironmentVariable("GITHUB_TOKEN") ??
                                               throw new InvalidOperationException("GITHUB_TOKEN environment variable is not set."))
@@ -343,81 +386,4 @@ internal sealed class DoCommandHandler : ICommandHandler
     public static ChatResponseFormatJson Markdown { get; } = ChatResponseFormatForType<MarkdownSchema>(
         schemaName: "MarkdownSchema",
         schemaDescription: "Markdown schema. Use this schema to generate markdown.");
-}
-
-#pragma warning disable CA1812
-
-internal sealed class StringArraySchema
-{
-    public string[] Value { get; set; } = [];
-}
-
-internal sealed class MarkdownSchema
-{
-    public string Markdown { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Represents a single commit following Conventional Commit spec
-/// https://www.conventionalcommits.org/en/v1.0.0
-/// </summary>
-internal sealed class ConventionalCommitSchema
-{
-    /// <summary>
-    /// Commit type (feat, fix, docs, etc.)
-    /// </summary>
-    public string Type { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Optional commit scope (e.g., "api")
-    /// </summary>
-    public string? Scope { get; set; }
-
-    /// <summary>
-    /// Indicates breaking change (using "!")
-    /// </summary>
-    public bool IsBreakingChange { get; set; }
-
-    /// <summary>
-    /// Short commit message description
-    /// </summary>
-    public string Description { get; set; } = string.Empty;
-
-    // /// <summary>
-    // /// Optional detailed commit body
-    // /// </summary>
-    // public string? Body { get; set; }
-
-    // // Optional footers (e.g., BREAKING CHANGE, Refs, Reviewed-by)
-    // public Dictionary<string, string> Footers { get; set; } = [];
-
-    /// <summary>
-    /// Generate conventional commit formatted string
-    /// </summary>
-    /// <returns></returns>
-    public override string ToString()
-    {
-        var scopeText = string.IsNullOrWhiteSpace(Scope) ? "" : $"({Scope})";
-        var breaking = IsBreakingChange ? "!" : "";
-
-        var header = $"{Type}{scopeText}{breaking}: {Description}";
-
-        var commitBuilder = new StringBuilder(header);
-
-        // if (!string.IsNullOrWhiteSpace(Body))
-        // {
-        //     commitBuilder.AppendLine().AppendLine().Append(Body);
-        // }
-        //
-        // if (Footers.Count > 0)
-        // {
-        //     commitBuilder.AppendLine();
-        //     foreach (var footer in Footers)
-        //     {
-        //         commitBuilder.AppendLine().Append($"{footer.Key}: {footer.Value}");
-        //     }
-        // }
-
-        return commitBuilder.ToString();
-    }
 }

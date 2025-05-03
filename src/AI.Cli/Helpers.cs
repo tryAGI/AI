@@ -53,6 +53,7 @@ internal static class Helpers
     public static IChatClient GetChatModel(
         string? model = null,
         Provider? provider = null,
+        ILoggerFactory? factory = null,
         bool debug = false)
     {
         if (debug)
@@ -99,22 +100,15 @@ internal static class Helpers
                 }
         }
 
-        using var factory = LoggerFactory.Create(builder =>
-        {
-            if (debug)
-            {
-                builder.AddConsole().SetMinimumLevel(LogLevel.Trace);
-            }
-            else
-            {
-                builder.AddDebug().SetMinimumLevel(LogLevel.Trace);
-            }
-        });
         var client = new ChatClientBuilder(chatClient)
-            // 👇🏼 Add logging to the chat client, wrapping the function invocation client 
             .UseLogging(factory)
-            // 👇🏼 Add function invocation to the chat client, wrapping the Ollama client
-            .UseFunctionInvocation()
+            .UseFunctionInvocation(factory, static invokingChatClient =>
+            {
+                invokingChatClient.AllowConcurrentInvocation = true;
+                invokingChatClient.IncludeDetailedErrors = true;
+                invokingChatClient.MaximumConsecutiveErrorsPerRequest = 3;
+                invokingChatClient.MaximumIterationsPerRequest = 3;
+            })
             .Build();
 
         return client;
