@@ -12,6 +12,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="NuGet">
+        <PackageId>tryAGI.AI</PackageId>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>ai</ToolCommandName>
         <Description>Command Line Interface to run some AI tasks.</Description>
