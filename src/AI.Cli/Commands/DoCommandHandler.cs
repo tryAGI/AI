@@ -18,6 +18,7 @@ using Tool = AI.Cli.Models.Tool;
 namespace AI.Cli.Commands;
 
 #pragma warning disable CA1848
+#pragma warning disable CA1861
 
 internal sealed class DoCommandHandler(
     ILogger logger,
@@ -139,7 +140,9 @@ internal sealed class DoCommandHandler(
                                 "run",
                                 "-i",
                                 "--rm",
-                                ..directories.Select(x => $"--mount type=bind,src={x},dst={x} "),
+                                ..directories.Length != 0
+                                    ? new [] { "--mount" }.Concat(directories.Select(x => $"type=bind,src={x},dst={x}"))
+                                    : [],
                                 "mcp/git"
                             ],
                         },
@@ -152,7 +155,8 @@ internal sealed class DoCommandHandler(
                                 "-i",
                                 "--rm",
                                 "--init",
-                                "-e DOCKER_CONTAINER=true",
+                                "-e",
+                                "DOCKER_CONTAINER=true",
                                 "mcp/puppeteer"
                             ],
                         },
@@ -175,9 +179,12 @@ internal sealed class DoCommandHandler(
                                 "run",
                                 "-i",
                                 "--rm",
-                                $"-e SLACK_BOT_TOKEN={Environment.GetEnvironmentVariable("SLACK_BOT_TOKEN")}",
-                                $"-e SLACK_TEAM_ID={Environment.GetEnvironmentVariable("SLACK_TEAM_ID")}",
-                                $"-e SLACK_CHANNEL_IDS={Environment.GetEnvironmentVariable("SLACK_CHANNEL_IDS")}",
+                                "-e",
+                                $"SLACK_BOT_TOKEN={Environment.GetEnvironmentVariable("SLACK_BOT_TOKEN")}",
+                                "-e",
+                                $"SLACK_TEAM_ID={Environment.GetEnvironmentVariable("SLACK_TEAM_ID")}",
+                                "-e",
+                                $"SLACK_CHANNEL_IDS={Environment.GetEnvironmentVariable("SLACK_CHANNEL_IDS")}",
                                 "mcp/slack"
                             ],
                         },

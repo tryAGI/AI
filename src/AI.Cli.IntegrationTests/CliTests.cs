@@ -48,7 +48,7 @@ public class CliTests
         await ("--tools filesystem,git " +
                "--directories \"/Users/havendv/GitHub/tryAGI/\" " +
                "--provider openrouter " +
-               "--model free-fast " +
+               //"--model free-fast " +
                "--input \"Please create new repo with name `Do` in `/Users/havendv/GitHub/tryAGI/` dir and git init it.\"")
             .ShouldWork();
     }
