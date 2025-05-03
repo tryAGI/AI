@@ -233,7 +233,7 @@ internal sealed class DoCommandHandler(
                 {
                     AIFunctionFactory.Create(
                         FindFilePathsByContent,
-                        name: "FindFilePathsByContent",
+                        name: "find_file_paths_by_content",
                         description: "Finds file paths by content.")
                 }
                 : [],
@@ -275,14 +275,14 @@ internal sealed class DoCommandHandler(
 
         foreach (var message in response.Messages)
         {
-            // var callIds = string.Join(",", message.Contents
-            //     .OfType<FunctionCallContent>()
+            var toolNames = string.Join(",", message.Contents
+                .OfType<FunctionCallContent>()
+                .Select(x => $"{x.Name}({string.Join(",", x.Arguments?.Select(y => y.Value?.ToString() ?? string.Empty)?? [])})"));
+            // var resultIds = string.Join(",", message.Contents
+            //     .OfType<FunctionResultContent>()
             //     .Select(x => x.CallId));
-            var resultIds = string.Join(",", message.Contents
-                .OfType<FunctionResultContent>()
-                .Select(x => x.CallId));
-            var content = !string.IsNullOrWhiteSpace(resultIds)
-                ? resultIds
+            var content = !string.IsNullOrWhiteSpace(toolNames)
+                ? toolNames
                 : message.Text;
             if (string.IsNullOrWhiteSpace(content))
             {

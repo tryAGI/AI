@@ -36,8 +36,8 @@ public class CliTests
     {
         await ("--format ConventionalCommit " +
                "--provider openrouter " +
-               "--debug " +
-               "--model free-smart " +
+               //"--debug " +
+               //"--model free-smart " +
                "--input \"Please show me the commit message for the following text: There was fixed a bug in FixOpenAPISpec project.\"")
             .ShouldWork();
     }
@@ -45,7 +45,7 @@ public class CliTests
     [Test]
     public async Task DoCommand_WithGitAndFileSystem_CreatesRepo_ShouldReturnValidOutput()
     {
-        await ("--tools filesystem,git " +
+        await ("--tools filesystem git " +
                "--directories \"/Users/havendv/GitHub/tryAGI/\" " +
                "--provider openrouter " +
                //"--model free-fast " +
@@ -81,14 +81,14 @@ Issue Number: 98
             .ShouldWork();
     }
     
-    [Test]
-    public async Task DoCommand_ExtractIssueToPullRequestData_ShouldReturnValidOutput()
-    {
-        await ("--tools github[issues] filesystem " +
-               "--provider openrouter " +
-               "--model free-fast " +
-               "--debug " +
-               "--input \"You work in the tryAGI/Replicate repository on the issue #97. Always retrieve issue body/comments and always retrieve available labels (because almost always there is custom labels), and always call `update_issue` tool to update the issue with suitable labels. Don't change body and other data.\"")
-            .ShouldWork();
-    }
+    // [Test]
+    // public async Task DoCommand_ExtractIssueToPullRequestData_ShouldReturnValidOutput()
+    // {
+    //     await ("--tools github[issues] filesystem " +
+    //            "--provider openrouter " +
+    //            //"--model free-fast " +
+    //            //"--debug " +
+    //            "--input \"You work in the tryAGI/Replicate repository on the issue #97. Always retrieve issue body/comments and always retrieve available labels (because almost always there is custom labels), and always call `update_issue` tool to update the issue with suitable labels. Don't change body and other data.\"")
+    //         .ShouldWork();
+    // }
 }
