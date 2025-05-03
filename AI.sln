@@ -1,0 +1,51 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{23506EB8-1B27-4FD0-B570-2F5EF2C33034}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		src\Directory.Build.props = src\Directory.Build.props
+		LICENSE = LICENSE
+		src\Packaging.props = src\Packaging.props
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{B4ED97D9-08F2-4531-B21B-EA1B9CB4E52B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\auto-labeling.yml = .github\workflows\auto-labeling.yml
+		.github\workflows\auto-merge.yml = .github\workflows\auto-merge.yml
+		.github\dependabot.yml = .github\dependabot.yml
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		.github\workflows\pull-request.yml = .github\workflows\pull-request.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.Cli", "src\AI.Cli\AI.Cli.csproj", "{BC2E5BC3-D6FC-4AD5-B7FE-CF3BD3A75523}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.Cli.IntegrationTests", "src\AI.Cli.IntegrationTests\AI.Cli.IntegrationTests.csproj", "{7E25EEA4-E4C7-49B6-AE4C-1C4B29656743}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC2E5BC3-D6FC-4AD5-B7FE-CF3BD3A75523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC2E5BC3-D6FC-4AD5-B7FE-CF3BD3A75523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC2E5BC3-D6FC-4AD5-B7FE-CF3BD3A75523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC2E5BC3-D6FC-4AD5-B7FE-CF3BD3A75523}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E25EEA4-E4C7-49B6-AE4C-1C4B29656743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E25EEA4-E4C7-49B6-AE4C-1C4B29656743}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E25EEA4-E4C7-49B6-AE4C-1C4B29656743}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E25EEA4-E4C7-49B6-AE4C-1C4B29656743}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B4ED97D9-08F2-4531-B21B-EA1B9CB4E52B} = {23506EB8-1B27-4FD0-B570-2F5EF2C33034}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C00D0F1-6138-4ED9-846B-97E43D6DFF1C}
+	EndGlobalSection
+EndGlobal

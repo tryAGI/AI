@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+        <PackageReference Include="NUnit" Version="4.3.2" />
+        <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+        <PackageReference Include="AwesomeAssertions" Version="8.1.0" />
+        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="H.Resources.Generator" Version="1.8.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Moq" Version="4.20.72" />
+    </ItemGroup>
+
+    <ItemGroup Label="GlobalUsings">
+        <Using Include="NUnit.Framework" />
+        <Using Include="FluentAssertions" />
+    </ItemGroup>
+
+    <ItemGroup Label="Usings">
+        <Compile Remove="Resources\**\*.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AI.Cli\AI.Cli.csproj" />
+    </ItemGroup>
+
+</Project>
