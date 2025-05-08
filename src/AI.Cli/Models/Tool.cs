@@ -11,6 +11,7 @@ internal enum Tool
     Slack,
     Figma,
     DocumentConversion,
+    Agents,
 }
 
 // Extension class to handle tool parsing with optional toolsets
@@ -19,12 +20,15 @@ internal static class ToolExtensions
     // Parse a string into a Tool with optional toolset
     public static (Tool Tool, string[]? Toolsets) ParseTool(string input)
     {
+        // Preprocess input to remove dashes for kebab-case support
+        string processedInput = input.Replace("-", "", StringComparison.Ordinal);
+
         // Check if the input contains a toolset in square brackets
-        int openBracketIndex = input.IndexOf('[', StringComparison.Ordinal);
-        if (openBracketIndex > 0 && input.EndsWith(']'))
+        int openBracketIndex = processedInput.IndexOf('[', StringComparison.Ordinal);
+        if (openBracketIndex > 0 && processedInput.EndsWith(']'))
         {
-            string toolName = input.Substring(0, openBracketIndex);
-            string toolsetsString = input.Substring(openBracketIndex + 1, input.Length - openBracketIndex - 2);
+            string toolName = processedInput.Substring(0, openBracketIndex);
+            string toolsetsString = processedInput.Substring(openBracketIndex + 1, processedInput.Length - openBracketIndex - 2);
 
             // Split by comma to handle multiple toolsets
             string[] toolsets = toolsetsString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -36,7 +40,7 @@ internal static class ToolExtensions
         }
 
         // No toolset specified, just parse the tool name
-        if (Enum.TryParse<Tool>(input, ignoreCase: true, out var simpleTool))
+        if (Enum.TryParse<Tool>(processedInput, ignoreCase: true, out var simpleTool))
         {
             return (simpleTool, null);
         }

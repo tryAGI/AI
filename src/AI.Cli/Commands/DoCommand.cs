@@ -15,6 +15,7 @@ internal sealed class DoCommand : RootCommand
         AddOption(doCommandHandler.DebugOption);
         AddOption(doCommandHandler.ModelOption);
         AddOption(doCommandHandler.ProviderOption);
+        AddOption(doCommandHandler.ImagesOption);
 
         Handler = doCommandHandler;
     }

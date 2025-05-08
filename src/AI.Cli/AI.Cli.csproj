@@ -20,6 +20,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="CliWrap" Version="3.8.2" />
         <PackageReference Include="Microsoft.Extensions.AI" Version="9.4.3-preview.1.25230.7"/>
         <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.4.3-preview.1.25230.7"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4"/>

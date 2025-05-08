@@ -6,12 +6,17 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Schema;
 using AI.Cli.Models;
+using CliWrap;
+using CliWrap.Buffered;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol.Transport;
 using ModelContextProtocol.Protocol.Types;
 using Octokit;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using ChatResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat;
+using Credentials = Octokit.Credentials;
 using Models_Tool = AI.Cli.Models.Tool;
 using Tool = AI.Cli.Models.Tool;
 
@@ -21,19 +26,25 @@ namespace AI.Cli.Commands;
 #pragma warning disable CA1861
 
 internal sealed class DoCommandHandler(
-    ILogger logger,
+    ILogger<DoCommandHandler> logger,
     ILoggerFactory loggerFactory) : ICommandHandler
 {
     public Option<string> InputOption { get; } = CommonOptions.Input;
     public Option<FileInfo?> InputFileOption { get; } = CommonOptions.InputFile;
     public Option<FileInfo?> OutputFileOption { get; } = CommonOptions.OutputFile;
     public Option<bool> DebugOption { get; } = CommonOptions.Debug;
-    public Option<string> ModelOption { get; } = CommonOptions.Model;
+    public Option<string?> ModelOption { get; } = CommonOptions.Model;
     public Option<Provider> ProviderOption { get; } = CommonOptions.Provider;
     public Option<string[]> ToolsOption { get; } = new(
         aliases: ["--tools", "-t"],
         description: $"Tools you want to use - {string.Join(", ", Enum.GetNames<Models_Tool>())}. " +
                      "You can specify toolsets using square brackets, e.g., github[issues].")
+    {
+        AllowMultipleArgumentsPerToken = true,
+    };
+    public Option<string[]> ImagesOption { get; } = new(
+        aliases: ["--images"],
+        description: "Paths to images you want to use.")
     {
         AllowMultipleArgumentsPerToken = true,
     };
@@ -56,10 +67,11 @@ internal sealed class DoCommandHandler(
         var input = context.ParseResult.GetValueForOption(InputOption) ?? string.Empty;
         var inputPath = context.ParseResult.GetValueForOption(InputFileOption);
         var outputPath = context.ParseResult.GetValueForOption(OutputFileOption);
-        var debug = context.ParseResult.GetValueForOption(DebugOption);
+        //var debug = context.ParseResult.GetValueForOption(DebugOption);
         var model = context.ParseResult.GetValueForOption(ModelOption);
         var provider = context.ParseResult.GetValueForOption(ProviderOption);
         var toolStrings = context.ParseResult.GetValueForOption(ToolsOption) ?? [];
+        var images = context.ParseResult.GetValueForOption(ImagesOption) ?? [];
         var directories = context.ParseResult.GetValueForOption(DirectoriesOption) ?? [];
         var format = context.ParseResult.GetValueForOption(FormatOption);
 
@@ -79,9 +91,9 @@ internal sealed class DoCommandHandler(
                     .ToArray());
 
         var inputText = await Helpers.ReadInputAsync(input, inputPath).ConfigureAwait(false);
-        var llm = Helpers.GetChatModel(model, provider, loggerFactory, debug);
+        var llm = Helpers.GetChatModel(model, provider, logger, loggerFactory);
 
-        var clients = await Task.WhenAll(tools.Select(async tool =>
+        var clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
         {
             // Get toolsets for this tool if any
             var toolsets = (toolsetsByTool.GetValueOrDefault(tool) ?? [])
@@ -228,13 +240,24 @@ internal sealed class DoCommandHandler(
         [
             .. mcpTools.SelectMany(x => x).ToArray(),
             
+            .. tools.Contains(Tool.Agents)
+                ? new[]
+                {
+                    AIFunctionFactory.Create(
+                        AskAgent,
+                        name: "delegate_to_agent",
+                        description: "Delegates the task to another agent." +
+                                     "It useful if you need to wath image or do only specific things in parallel."),
+                }
+                : [],
+            
             .. tools.Contains(Tool.Filesystem)
                 ? new[]
                 {
                     AIFunctionFactory.Create(
                         FindFilePathsByContent,
                         name: "find_file_paths_by_content",
-                        description: "Finds file paths by content.")
+                        description: "Finds file paths by content."),
                 }
                 : [],
             
@@ -254,7 +277,14 @@ internal sealed class DoCommandHandler(
             allTools);
 
         var response = await llm.GetResponseAsync(
-            inputText,
+            new ChatMessage
+            {
+                Contents = [
+                    new TextContent(inputText),
+                    .. images
+                        .Select(static path => new DataContent(File.ReadAllBytes(path), GetMimeType(path))),
+                ]
+            },
             new ChatOptions
             {
                 Tools = allTools,
@@ -375,6 +405,59 @@ internal sealed class DoCommandHandler(
             var labels = await github.Issue.Labels.GetAllForRepository(owner, name).ConfigureAwait(false);
 
             return labels;
+        }
+
+        [Description("Asks separate agent to do some specific thing.")]
+        static async Task<string> AskAgent(
+            [Description("The prompt cleary describes who are the agent, who he need to do, all context, all required output and current situation.")] string prompt,
+            [Description("The model to use." +
+                         "'gpt-4.1' best for images." +
+                         "'o4-mini' better for planning and all other things.")] string? model = null,
+            [Description("Tools he can use. Possible tools:" +
+                         "Filesystem - allows to interact with files inside defined directories," +
+                         "Fetch - allows to retrieve data from url," +
+                         "GitHub," +
+                         "Git," +
+                         "Puppeteer - allows to use headless browser," +
+                         "SequentialThinking - allows to plan something," +
+                         "Slack - allows to report progress," +
+                         "Figma - allows to read design from urls," +
+                         "DocumentConversion - allows to convert document between formats - PDF, markdown, Word etc," +
+                         "Agents - allows to spawn new agents,")] string[]? tools = null,
+            [Description("The full paths to images.")] string[]? images = null,
+            [Description("The full paths to directories - you need this only if use Filesystem tool.")] string[]? directories = null)
+        {
+            var result = await CliWrap.Cli.Wrap(
+#if DEBUG
+                "/Users/havendv/GitHub/tryAGI/AI/src/AI.Cli/bin/Debug/net9.0/AI.CLI"
+#else
+                "ai"
+#endif
+                )
+                .WithArguments([
+                    "--input", prompt,
+                    .. model != null ? ["--model", model] : Array.Empty<string>(),
+                    .. tools != null ? ["--tools", .. tools] : Array.Empty<string>(),
+                    .. images != null ? ["--images", .. images] : Array.Empty<string>(),
+                    .. directories != null ? ["--directories", .. directories] : Array.Empty<string>(),
+                ])
+                .WithWorkingDirectory(Path.GetFullPath("."))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync();
+
+            return result.StandardOutput;
+        }
+        
+        static string GetMimeType(string path)
+        {
+            return Path.GetExtension(path).ToUpperInvariant() switch
+            {
+                ".JPG" or ".JPEG" => "image/jpeg",
+                ".PNG" => "image/png",
+                ".GIF" => "image/gif",
+                ".WEBP" => "image/webp",
+                _ => "image/png",
+            };
         }
     }
 

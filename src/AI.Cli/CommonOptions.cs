@@ -25,9 +25,9 @@ internal static class CommonOptions
         getDefaultValue: () => false,
         description: "Show Debug Information");
 
-    public static Option<string> Model => new(
+    public static Option<string?> Model => new(
         aliases: ["--model"],
-        getDefaultValue: () => "o3-mini",
+        getDefaultValue: () => null,
         description: "Model to use for commands.");
 
     public static Option<Provider> Provider => new(

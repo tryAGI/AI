@@ -8,6 +8,8 @@ using OpenAI;
 
 namespace AI.Cli;
 
+#pragma warning disable CA1848
+
 internal static class Helpers
 {
     public static async Task<string> ReadInputAsync(string input, FileInfo? inputPath, CancellationToken cancellationToken = default)
@@ -53,14 +55,11 @@ internal static class Helpers
     public static IChatClient GetChatModel(
         string? model = null,
         Provider? provider = null,
-        ILoggerFactory? factory = null,
-        bool debug = false)
+        ILogger? logger = null,
+        ILoggerFactory? factory = null)
     {
-        if (debug)
-        {
-            Console.WriteLine("Using provider: " + provider);
-            Console.WriteLine("Using model: " + model);
-        }
+        logger?.LogInformation("Using provider: {Provider}", provider);
+        logger?.LogInformation("Using model: {Model}", model);
 
         IChatClient chatClient;
         Uri? endpoint = provider switch

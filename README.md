@@ -19,7 +19,7 @@ dotnet tool install --global tryagi.ai --prerelease
 set OPENAI_API_KEY = <your_api_key>
 
 # Actions in filesystem and git usage
-ai  --tools filesystem,git
+ai  --tools filesystem git
     --directories "/Users/havendv/GitHub/tryAGI/"
     --provider openrouter
     --model free-fast
