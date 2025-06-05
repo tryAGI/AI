@@ -51,7 +51,10 @@ internal sealed class DoCommandHandler(
     public Option<DirectoryInfo[]> DirectoriesOption { get; } = new(
         aliases: ["--directories", "-d"],
         getDefaultValue: () => [new DirectoryInfo(".")],
-        description: "Directories you want to use for filesystem.");
+        description: "Directories you want to use for filesystem.")
+    {
+        AllowMultipleArgumentsPerToken = true,
+    };
     public Option<Format> FormatOption { get; } = new(
         aliases: ["--format", "-f"],
         getDefaultValue: () => Format.Text,
@@ -283,6 +286,9 @@ internal sealed class DoCommandHandler(
                     new TextContent(inputText),
                     .. images
                         .Select(static path => new DataContent(File.ReadAllBytes(path), GetMimeType(path))),
+                    .. directories.Length != 0 
+                        ? new [] { new TextContent("You have access to these directories:" + Environment.NewLine + string.Join(Environment.NewLine, directories.Select(x => x.FullName))) }
+                        : [],
                 ]
             },
             new ChatOptions

@@ -52,6 +52,22 @@ public class CliTests
     }
 
     [Test]
+    public async Task DoCommand_Test()
+    {
+            const string prompt = @"
+I updated AssemblyAI `.github/workflows/auto-merge.yml` GitHub action to use --squash option in `Enable auto-merge` step and GH_TOKEN env variable.
+So now I want update all other `.github/workflows/auto-merge.yml` in other repos inside `/Users/havendv/GitHub/tryAGI/` to use the same.
+
+Create plan with all files need to be updated in `/Users/havendv/Tasks/update-auto-merge/` folder.
+";
+
+    await ("--tools filesystem " +
+           "--directories \"/Users/havendv/GitHub/tryAGI/\" \"/Users/havendv/Tasks/update-auto-merge/\" " +
+           $"--input \"{prompt}\"")
+            .ShouldWork();
+    }
+
+    [Test]
     public async Task DoCommand_AutoLabeling_ShouldReturnValidOutput()
     {
         const string prompt = @"
