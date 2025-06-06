@@ -103,11 +103,11 @@ internal sealed class DoCommandHandler(
             _ => model,
         };
         provider ??=
-            Environment.GetEnvironmentVariable("OPENAI_API_KEY") != null
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY"))
                 ? Provider.OpenAi
-            : Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") != null
+            : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY"))
                 ? Provider.Anthropic
-            : Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") != null
+            : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENROUTER_API_KEY"))
                 ? Provider.OpenRouter
             : throw new InvalidOperationException("No API key found for any provider.");
         var llm = Helpers.GetChatModel(model, provider.Value, logger, loggerFactory);
