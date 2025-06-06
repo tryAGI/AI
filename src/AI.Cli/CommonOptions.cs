@@ -30,8 +30,8 @@ internal static class CommonOptions
         getDefaultValue: () => null,
         description: "Model to use for commands.");
 
-    public static Option<Provider?> Provider => new(
+    public static Option<Provider> Provider => new(
         aliases: ["--provider"],
-        getDefaultValue: () => null,
-        description: $"Provider to use for commands.");
+        getDefaultValue: () => default,
+        description: "Provider to use for commands.");
 }

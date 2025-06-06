@@ -33,7 +33,7 @@ internal sealed class DoCommandHandler(
     public Option<FileInfo?> OutputFileOption { get; } = CommonOptions.OutputFile;
     public Option<bool> DebugOption { get; } = CommonOptions.Debug;
     public Option<string?> ModelOption { get; } = CommonOptions.Model;
-    public Option<Provider?> ProviderOption { get; } = CommonOptions.Provider;
+    public Option<Provider> ProviderOption { get; } = CommonOptions.Provider;
     public Option<string[]> ToolsOption { get; } = new(
         aliases: ["--tools", "-t"],
         description: $"Tools you want to use - {string.Join(", ", Enum.GetNames<Models_Tool>())}. " +
@@ -93,24 +93,40 @@ internal sealed class DoCommandHandler(
                     .ToArray());
 
         var inputText = await Helpers.ReadInputAsync(input, inputPath).ConfigureAwait(false);
+        if (provider == Provider.Auto)
+        {
+            provider =
+                !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY"))
+                    ? Provider.OpenAi
+                    : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY"))
+                        ? Provider.Anthropic
+                        : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENROUTER_API_KEY"))
+                            ? Provider.OpenRouter
+                            : throw new InvalidOperationException("No API key found for any provider.");
+        }
         model = model switch
         {
-            null => "o4-mini",
-            "free" or "free-fast" => "google/gemini-2.0-flash-exp:free",
-            "free-smart" => "deepseek/deepseek-r1:free",
-            "latest-fast" => "o4-mini",
-            "latest-smart" => "o3",
+            "latest-fast" when provider == Provider.OpenAi => "o4-mini",
+            "latest-smart" when provider == Provider.OpenAi => "o3",
+            null when provider == Provider.OpenAi => "o4-mini",
+            _ when provider == Provider.OpenAi && string.IsNullOrWhiteSpace(model) => "o4-mini",
+            
+            "latest-fast" when provider == Provider.Anthropic => "claude-sonnet-4-0",
+            "latest-smart" when provider == Provider.Anthropic => "claude-opus-4-0",
+            null when provider == Provider.Anthropic => "claude-sonnet-4-0",
+            _ when provider == Provider.Anthropic && string.IsNullOrWhiteSpace(model) => "claude-sonnet-4-0",
+            
+            "latest-fast" when provider == Provider.OpenRouter => "google/gemini-2.5-flash-preview",
+            "latest-smart" when provider == Provider.OpenRouter => "google/gemini-2.5-pro-preview",
+            null when provider == Provider.OpenRouter => "google/gemini-2.5-flash-preview",
+            _ when provider == Provider.OpenRouter && string.IsNullOrWhiteSpace(model) => "google/gemini-2.5-flash-preview",
+            
+            "free" or "free-fast" when provider == Provider.OpenRouter => "google/gemini-2.0-flash-exp:free",
+            "free-smart" when provider == Provider.OpenRouter => "deepseek/deepseek-r1:free",
+            
             _ => model,
         };
-        provider ??=
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY"))
-                ? Provider.OpenAi
-            : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY"))
-                ? Provider.Anthropic
-            : !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENROUTER_API_KEY"))
-                ? Provider.OpenRouter
-            : throw new InvalidOperationException("No API key found for any provider.");
-        var llm = Helpers.GetChatModel(model, provider.Value, logger, loggerFactory);
+        var llm = Helpers.GetChatModel(model!, provider, logger, loggerFactory);
 
         var clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
         {
