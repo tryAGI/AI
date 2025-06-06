@@ -54,8 +54,8 @@ internal static class Helpers
     }
 
     public static IChatClient GetChatModel(
-        string? model = null,
-        Provider? provider = null,
+        string model,
+        Provider provider,
         ILogger? logger = null,
         ILoggerFactory? factory = null)
     {
@@ -70,7 +70,7 @@ internal static class Helpers
         };
         var apiKey = provider switch
         {
-            Provider.OpenAi or null => Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
+            Provider.OpenAi => Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
                 throw new InvalidOperationException("OPENAI_API_KEY environment variable is not set."),
             Provider.OpenRouter or Provider.Free => Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ??
                 throw new InvalidOperationException("OPENROUTER_API_KEY environment variable is not set."),

@@ -33,7 +33,7 @@ internal sealed class DoCommandHandler(
     public Option<FileInfo?> OutputFileOption { get; } = CommonOptions.OutputFile;
     public Option<bool> DebugOption { get; } = CommonOptions.Debug;
     public Option<string?> ModelOption { get; } = CommonOptions.Model;
-    public Option<Provider> ProviderOption { get; } = CommonOptions.Provider;
+    public Option<Provider?> ProviderOption { get; } = CommonOptions.Provider;
     public Option<string[]> ToolsOption { get; } = new(
         aliases: ["--tools", "-t"],
         description: $"Tools you want to use - {string.Join(", ", Enum.GetNames<Models_Tool>())}. " +
@@ -102,7 +102,15 @@ internal sealed class DoCommandHandler(
             "latest-smart" => "o3",
             _ => model,
         };
-        var llm = Helpers.GetChatModel(model, provider, logger, loggerFactory);
+        provider ??=
+            Environment.GetEnvironmentVariable("OPENAI_API_KEY") != null
+                ? Provider.OpenAi
+            : Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") != null
+                ? Provider.Anthropic
+            : Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") != null
+                ? Provider.OpenRouter
+            : throw new InvalidOperationException("No API key found for any provider.");
+        var llm = Helpers.GetChatModel(model, provider.Value, logger, loggerFactory);
 
         var clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
         {
