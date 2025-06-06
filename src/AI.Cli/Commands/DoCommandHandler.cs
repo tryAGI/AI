@@ -106,16 +106,19 @@ internal sealed class DoCommandHandler(
         }
         model = model switch
         {
+            "auto" when provider == Provider.OpenAi => "o4-mini",
             "latest-fast" when provider == Provider.OpenAi => "o4-mini",
             "latest-smart" when provider == Provider.OpenAi => "o3",
             null when provider == Provider.OpenAi => "o4-mini",
             _ when provider == Provider.OpenAi && string.IsNullOrWhiteSpace(model) => "o4-mini",
             
+            "auto" when provider == Provider.Anthropic => "claude-sonnet-4-0",
             "latest-fast" when provider == Provider.Anthropic => "claude-sonnet-4-0",
             "latest-smart" when provider == Provider.Anthropic => "claude-opus-4-0",
             null when provider == Provider.Anthropic => "claude-sonnet-4-0",
             _ when provider == Provider.Anthropic && string.IsNullOrWhiteSpace(model) => "claude-sonnet-4-0",
             
+            "auto" when provider == Provider.OpenRouter => "google/gemini-2.5-flash-preview",
             "latest-fast" when provider == Provider.OpenRouter => "google/gemini-2.5-flash-preview",
             "latest-smart" when provider == Provider.OpenRouter => "google/gemini-2.5-pro-preview",
             null when provider == Provider.OpenRouter => "google/gemini-2.5-flash-preview",
