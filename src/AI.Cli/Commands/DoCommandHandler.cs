@@ -11,8 +11,7 @@ using CliWrap.Buffered;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Transport;
-using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Protocol;
 using Octokit;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using ChatResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat;
@@ -94,6 +93,15 @@ internal sealed class DoCommandHandler(
                     .ToArray());
 
         var inputText = await Helpers.ReadInputAsync(input, inputPath).ConfigureAwait(false);
+        model = model switch
+        {
+            null => "o4-mini",
+            "free" or "free-fast" => "google/gemini-2.0-flash-exp:free",
+            "free-smart" => "deepseek/deepseek-r1:free",
+            "latest-fast" => "o4-mini",
+            "latest-smart" => "o3",
+            _ => model,
+        };
         var llm = Helpers.GetChatModel(model, provider, logger, loggerFactory);
 
         var clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
@@ -293,6 +301,7 @@ internal sealed class DoCommandHandler(
             },
             new ChatOptions
             {
+                ModelId = model,
                 Tools = allTools,
                 ResponseFormat = format switch
                 {

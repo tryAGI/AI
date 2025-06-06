@@ -2,6 +2,7 @@ using System.ClientModel;
 using System.CommandLine;
 using System.CommandLine.IO;
 using AI.Cli.Models;
+using Anthropic;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenAI;
@@ -67,26 +68,27 @@ internal static class Helpers
             Provider.Free or Provider.OpenRouter => new Uri(tryAGI.OpenAI.CustomProviders.OpenRouterBaseUrl),
             _ => null,
         };
-        model = model switch
-        {
-            null => "o4-mini",
-            "free" or "free-fast" => "google/gemini-2.0-flash-exp:free",
-            "free-smart" => "deepseek/deepseek-r1:free",
-            "latest-fast" => "o4-mini",
-            "latest-smart" => "o3",
-            _ => model,
-        };
         var apiKey = provider switch
         {
             Provider.OpenAi or null => Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
                 throw new InvalidOperationException("OPENAI_API_KEY environment variable is not set."),
             Provider.OpenRouter or Provider.Free => Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ??
                 throw new InvalidOperationException("OPENROUTER_API_KEY environment variable is not set."),
+            Provider.Anthropic => Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ??
+                throw new InvalidOperationException("ANTHROPIC_API_KEY environment variable is not set."),
             _ => throw new NotImplementedException(),
         };
 
         switch (provider)
         {
+            case Provider.Anthropic:
+                {
+#pragma warning disable CA2000
+                    chatClient = new AnthropicClient(apiKey);
+#pragma warning restore CA2000
+                    break;
+                }
+            
             default:
                 {
                     var openAiClient = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions

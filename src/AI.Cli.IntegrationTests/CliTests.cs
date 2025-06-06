@@ -68,6 +68,15 @@ Create plan with all files need to be updated in `/Users/havendv/Tasks/update-au
     }
 
     [Test]
+    public async Task DoCommand_Anthropic_ShouldReturnValidOutput()
+    {
+            await ("--provider anthropic " +
+                   "--model \"claude-sonnet-4-0\"" +
+                   "--input \"Return 54321\"")
+                    .ShouldWork();
+    }
+
+    [Test]
     public async Task DoCommand_AutoLabeling_ShouldReturnValidOutput()
     {
         const string prompt = @"
