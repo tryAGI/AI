@@ -20,7 +20,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CliWrap" Version="3.8.2" />
+        <PackageReference Include="CliWrap" Version="3.9.0" />
         <PackageReference Include="Microsoft.Extensions.AI" Version="9.5.0" />
         <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.5.0-preview.1.25265.7" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5"/>
@@ -32,7 +32,7 @@
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
         <PackageReference Include="System.Text.Json" Version="9.0.5"/>
         <PackageReference Include="tryAGI.OpenAI" Version="4.2.1-dev.6"/>
-        <PackageReference Include="Anthropic" Version="3.6.0" />
+        <PackageReference Include="Anthropic" Version="3.7.0" />
     </ItemGroup>
 
     <ItemGroup>
