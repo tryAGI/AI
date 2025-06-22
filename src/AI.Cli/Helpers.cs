@@ -1,6 +1,4 @@
 using System.ClientModel;
-using System.CommandLine;
-using System.CommandLine.IO;
 using AI.Cli.Models;
 using Anthropic;
 using Microsoft.Extensions.AI;
@@ -34,7 +32,7 @@ internal static class Helpers
         return inputText;
     }
 
-    public static async Task WriteOutputAsync(string outputText, FileInfo? outputPath, IConsole? console = null, CancellationToken cancellationToken = default)
+    public static async Task WriteOutputAsync(string outputText, FileInfo? outputPath, TextWriter? console = null, CancellationToken cancellationToken = default)
     {
         if (outputPath is not null)
         {
@@ -44,7 +42,7 @@ internal static class Helpers
         {
             if (console is not null)
             {
-                console.Out.WriteLine(outputText);
+                await console.WriteLineAsync(outputText).ConfigureAwait(false);
             }
             else
             {

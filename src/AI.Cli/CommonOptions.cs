@@ -6,32 +6,45 @@ namespace AI.Cli;
 internal static class CommonOptions
 {
     public static Option<string> Input => new(
-        aliases: ["--input", "-i"],
-        getDefaultValue: () => string.Empty,
-        description: "Input text");
+        name: "--input",
+        aliases: ["-i"])
+    {
+        Description = "Input text",
+        DefaultValueFactory = _ => string.Empty,
+    };
 
     public static Option<FileInfo?> InputFile => new(
-        aliases: ["--input-file"],
-        getDefaultValue: () => null,
-        description: "Input file path");
+        name: "--input-file")
+    {
+        Description = "Input file path",
+        DefaultValueFactory = _ => null,
+    };
 
     public static Option<FileInfo?> OutputFile => new(
-        aliases: ["--output-file"],
-        getDefaultValue: () => null,
-        description: "Output file path");
+        name: "--output-file")
+    {
+        Description = "Output file path",
+        DefaultValueFactory = _ => null,
+    };
 
     public static Option<bool> Debug => new(
-        aliases: ["--debug"],
-        getDefaultValue: () => false,
-        description: "Show Debug Information");
+        name: "--debug")
+    {
+        Description = "Show Debug Information",
+        DefaultValueFactory = _ => false,
+    };
 
     public static Option<string?> Model => new(
-        aliases: ["--model"],
-        getDefaultValue: () => null,
-        description: "Model to use for commands.");
+        name: "--model")
+    {
+        Description = "Model to use for commands.",
+        DefaultValueFactory = _ => null,
+    };
 
     public static Option<Provider> Provider => new(
-        aliases: ["--provider"],
-        getDefaultValue: () => default,
-        description: "Provider to use for commands.");
+        name: "--provider")
+    {
+        Description = "Provider to use for commands.",
+        DefaultValueFactory = _ => default,
+    };
 }

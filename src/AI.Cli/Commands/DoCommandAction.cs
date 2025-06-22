@@ -24,9 +24,9 @@ namespace AI.Cli.Commands;
 #pragma warning disable CA1848
 #pragma warning disable CA1861
 
-internal sealed class DoCommandHandler(
-    ILogger<DoCommandHandler> logger,
-    ILoggerFactory loggerFactory) : ICommandHandler
+internal sealed class DoCommandAction(
+    ILogger<DoCommandAction> logger,
+    ILoggerFactory loggerFactory) : AsynchronousCommandLineAction
 {
     public Option<string> InputOption { get; } = CommonOptions.Input;
     public Option<FileInfo?> InputFileOption { get; } = CommonOptions.InputFile;
@@ -35,47 +35,49 @@ internal sealed class DoCommandHandler(
     public Option<string?> ModelOption { get; } = CommonOptions.Model;
     public Option<Provider> ProviderOption { get; } = CommonOptions.Provider;
     public Option<string[]> ToolsOption { get; } = new(
-        aliases: ["--tools", "-t"],
-        description: $"Tools you want to use - {string.Join(", ", Enum.GetNames<Models_Tool>())}. " +
-                     "You can specify toolsets using square brackets, e.g., github[issues].")
+        name: "--tools",
+        aliases: ["-t"])
     {
         AllowMultipleArgumentsPerToken = true,
+        Description = $"Tools you want to use - {string.Join(", ", Enum.GetNames<Models_Tool>())}. " +
+                      "You can specify toolsets using square brackets, e.g., github[issues].",
     };
     public Option<string[]> ImagesOption { get; } = new(
-        aliases: ["--images"],
-        description: "Paths to images you want to use.")
+        name: "--images")
     {
         AllowMultipleArgumentsPerToken = true,
+        Description = "Paths to images you want to use.",
     };
     public Option<DirectoryInfo[]> DirectoriesOption { get; } = new(
-        aliases: ["--directories", "-d"],
-        getDefaultValue: () => [new DirectoryInfo(".")],
-        description: "Directories you want to use for filesystem.")
+        name: "--directories",
+        aliases: ["-d"])
     {
         AllowMultipleArgumentsPerToken = true,
+        Description = "Directories you want to use for filesystem.",
+        DefaultValueFactory = _ => [new DirectoryInfo(".")],
     };
     public Option<Format> FormatOption { get; } = new(
-        aliases: ["--format", "-f"],
-        getDefaultValue: () => Format.Text,
-        description: "Format of answer.");
-
-    public int Invoke(InvocationContext context)
+        name: "--format",
+        aliases: ["-f"])
     {
-        throw new NotImplementedException();
-    }
+        Description = "Format of answer.",
+        DefaultValueFactory = _ => Format.Text,
+    };
 
-    public async Task<int> InvokeAsync(InvocationContext context)
+    public override async Task<int> InvokeAsync(
+        ParseResult parseResult,
+        CancellationToken cancellationToken = default)
     {
-        var input = context.ParseResult.GetValueForOption(InputOption) ?? string.Empty;
-        var inputPath = context.ParseResult.GetValueForOption(InputFileOption);
-        var outputPath = context.ParseResult.GetValueForOption(OutputFileOption);
-        //var debug = context.ParseResult.GetValueForOption(DebugOption);
-        var model = context.ParseResult.GetValueForOption(ModelOption);
-        var provider = context.ParseResult.GetValueForOption(ProviderOption);
-        var toolStrings = context.ParseResult.GetValueForOption(ToolsOption) ?? [];
-        var images = context.ParseResult.GetValueForOption(ImagesOption) ?? [];
-        var directories = context.ParseResult.GetValueForOption(DirectoriesOption) ?? [];
-        var format = context.ParseResult.GetValueForOption(FormatOption);
+        var input = parseResult.GetValue(InputOption) ?? string.Empty;
+        var inputPath =parseResult.GetValue(InputFileOption);
+        var outputPath = parseResult.GetValue(OutputFileOption);
+        //var debug = parseResult.GetValue(DebugOption);
+        var model = parseResult.GetValue(ModelOption);
+        var provider = parseResult.GetValue(ProviderOption);
+        var toolStrings = parseResult.GetValue(ToolsOption) ?? [];
+        var images = parseResult.GetValue(ImagesOption) ?? [];
+        var directories = parseResult.GetValue(DirectoriesOption) ?? [];
+        var format = parseResult.GetValue(FormatOption);
 
         // Parse tool strings into tools and toolsets
         var toolsWithToolsets = toolStrings.Select(ToolExtensions.ParseTool).ToArray();
@@ -92,7 +94,7 @@ internal sealed class DoCommandHandler(
                     .Select(x => x.Trim())
                     .ToArray());
 
-        var inputText = await Helpers.ReadInputAsync(input, inputPath).ConfigureAwait(false);
+        var inputText = await Helpers.ReadInputAsync(input, inputPath, cancellationToken).ConfigureAwait(false);
         if (provider == Provider.Auto)
         {
             provider =
@@ -343,7 +345,7 @@ internal sealed class DoCommandHandler(
                     Format.Json => ChatResponseFormat.Json,
                     _ => throw new ArgumentException($"Unknown format: {format}"),
                 },
-            }).ConfigureAwait(false);
+            }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         foreach (var message in response.Messages)
         {
@@ -386,7 +388,7 @@ internal sealed class DoCommandHandler(
             output = value?.ToString() ?? string.Empty;
         }
 
-        await Helpers.WriteOutputAsync(output, outputPath, context.Console).ConfigureAwait(false);
+        await Helpers.WriteOutputAsync(output, outputPath, console: parseResult.Configuration.Output, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return 0;
 
@@ -410,7 +412,7 @@ internal sealed class DoCommandHandler(
                     }
 
                     //FileInfo info = new FileInfo(path);
-                    var text = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+                    var text = await File.ReadAllTextAsync(path, CancellationToken.None).ConfigureAwait(false);
 
                     if (text.Contains(content, StringComparison.OrdinalIgnoreCase))
                     {
@@ -485,7 +487,7 @@ internal sealed class DoCommandHandler(
                 ])
                 .WithWorkingDirectory(Path.GetFullPath("."))
                 .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync();
+                .ExecuteBufferedAsync(CancellationToken.None);
 
             return result.StandardOutput;
         }

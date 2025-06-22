@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.IO;
 using AI.Cli.Commands;
 using Microsoft.Extensions.Logging;
 
@@ -16,21 +15,26 @@ public static class TestExtensions
             builder.AddDebug().SetMinimumLevel(LogLevel.Information);
         });
         
-        var console = new TestConsole();
-        var rootCommand = new DoCommand(new DoCommandHandler(loggerFactory.CreateLogger<DoCommandHandler>(), loggerFactory));
+        await using var outputWriter = new StringWriter();
+        await using var errorWriter = new StringWriter();
+        var rootCommand = new DoCommand(new DoCommandAction(loggerFactory.CreateLogger<DoCommandAction>(), loggerFactory));
 
         //var test = rootCommand.Parse(arguments);
         //test.Errors.Should().BeEmpty();
 
         // Act
-        var result = await rootCommand.InvokeAsync(arguments, console);
+        var result = await new CommandLineConfiguration(rootCommand)
+        {
+            Error = errorWriter,
+            Output = outputWriter,
+        }.Parse(arguments).InvokeAsync();
 
-        Console.WriteLine(console.Error.ToString());
-        Console.WriteLine(console.Out.ToString());
+        Console.WriteLine(outputWriter.ToString());
+        Console.WriteLine(errorWriter.ToString());
 
         // Assert
         result.Should().Be(0);
-        console.Error.ToString()?.Trim().Should().Be(string.Empty);
-        //console.Out.ToString()?.Trim().Should().NotBeNullOrEmpty();
+        errorWriter.ToString().Trim().Should().Be(string.Empty);
+        outputWriter.ToString().Trim().Should().NotBeNullOrEmpty();
     }
 }

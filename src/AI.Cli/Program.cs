@@ -17,10 +17,10 @@ services.AddLogging(builder =>
 });
 
 services.AddSingleton<DoCommand>();
-services.AddSingleton<DoCommandHandler>();
+services.AddSingleton<DoCommandAction>();
 
 var serviceProvider = services.BuildServiceProvider();
 
-var command = serviceProvider.GetRequiredService<DoCommand>();
+var rootCommand = serviceProvider.GetRequiredService<DoCommand>();
 
-return await command.InvokeAsync(args).ConfigureAwait(false);
+return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);

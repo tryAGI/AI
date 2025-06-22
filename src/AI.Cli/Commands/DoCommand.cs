@@ -4,19 +4,19 @@ namespace AI.Cli.Commands;
 
 internal sealed class DoCommand : RootCommand
 {
-    public DoCommand(DoCommandHandler doCommandHandler) : base(description: "Generates text using a prompt.")
+    public DoCommand(DoCommandAction action) : base(description: "Generates text using a prompt.")
     {
-        AddOption(doCommandHandler.InputOption);
-        AddOption(doCommandHandler.InputFileOption);
-        AddOption(doCommandHandler.OutputFileOption);
-        AddOption(doCommandHandler.ToolsOption);
-        AddOption(doCommandHandler.DirectoriesOption);
-        AddOption(doCommandHandler.FormatOption);
-        AddOption(doCommandHandler.DebugOption);
-        AddOption(doCommandHandler.ModelOption);
-        AddOption(doCommandHandler.ProviderOption);
-        AddOption(doCommandHandler.ImagesOption);
+        Options.Add(action.InputOption);
+        Options.Add(action.InputFileOption);
+        Options.Add(action.OutputFileOption);
+        Options.Add(action.ToolsOption);
+        Options.Add(action.DirectoriesOption);
+        Options.Add(action.FormatOption);
+        Options.Add(action.DebugOption);
+        Options.Add(action.ModelOption);
+        Options.Add(action.ProviderOption);
+        Options.Add(action.ImagesOption);
 
-        Handler = doCommandHandler;
+        Action = action;
     }
 }
