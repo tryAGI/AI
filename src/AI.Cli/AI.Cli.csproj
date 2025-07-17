@@ -27,7 +27,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.7" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
-        <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.2" />
+        <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
         <PackageReference Include="Octokit" Version="14.0.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25358.103" />
         <PackageReference Include="System.Text.Json" Version="9.0.7" />
