@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Misc/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Packaging.props" />
+  </Folder>
+  <Folder Name="/Misc/workflows/">
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/workflows/auto-labeling.yml" />
+    <File Path=".github/workflows/auto-merge.yml" />
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/pull-request.yml" />
+  </Folder>
+  <Project Path="src/AI.Cli.IntegrationTests/AI.Cli.IntegrationTests.csproj" />
+  <Project Path="src/AI.Cli/AI.Cli.csproj" />
+</Solution>
