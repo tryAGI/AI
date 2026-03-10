@@ -10,7 +10,7 @@ AI CLI (`tryAGI.AI`) is a .NET console tool that uses AI models with MCP (Model 
 
 ```bash
 # Build entire solution
-dotnet build AI.sln
+dotnet build AI.slnx
 
 # Build just the CLI
 dotnet build src/AI.Cli/AI.Cli.csproj
@@ -35,7 +35,7 @@ dotnet run --project src/AI.Cli/AI.Cli.csproj -- --input "Hello" --provider open
 
 ```
 AI/
-├── AI.sln
+├── AI.slnx
 ├── src/
 │   ├── Directory.Build.props        # Shared build config (C# preview, nullable, implicit usings)
 │   ├── Packaging.props              # NuGet packaging properties
