@@ -37,7 +37,6 @@
 
     <ItemGroup>
 
-      <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="10.0.5" />
         <InternalsVisibleTo Include="AI.Cli.IntegrationTests" />
     </ItemGroup>
 
