@@ -21,8 +21,6 @@ using Tool = AI.Cli.Models.Tool;
 
 namespace AI.Cli.Commands;
 
-#pragma warning disable CA1861
-
 internal sealed partial class DoCommandAction(
     ILogger<DoCommandAction> logger,
     ILoggerFactory loggerFactory) : AsynchronousCommandLineAction
