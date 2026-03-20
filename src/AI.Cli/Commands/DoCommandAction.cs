@@ -402,6 +402,7 @@ internal sealed partial class DoCommandAction(
             {
                 await client.DisposeAsync().ConfigureAwait(false);
             }
+            llm.Dispose();
         }
 
         [Description("Finds file paths by content.")]
