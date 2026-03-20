@@ -193,8 +193,8 @@ internal sealed partial class DoCommandAction(
                                 "-i",
                                 "--rm",
                                 ..directories.Length != 0
-                                    ? new [] { "--mount" }.Concat(directories.Select(x => $"type=bind,src={x},dst={x}"))
-                                    : [],
+                                    ? ["--mount", ..directories.Select(x => $"type=bind,src={x},dst={x}")]
+                                    : Array.Empty<string>(),
                                 "mcp/git"
                             ],
                         },

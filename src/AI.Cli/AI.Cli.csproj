@@ -7,7 +7,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <NoWarn>$(NoWarn);CA1724;CA1303;IL3050;IL2026</NoWarn>
+        <NoWarn>$(NoWarn);CA1724;CA1303;CA2000;IL3050;IL2026</NoWarn>
         <SignAssembly>false</SignAssembly>
     </PropertyGroup>
 
