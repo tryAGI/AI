@@ -99,9 +99,9 @@ Tools are spawned as MCP server processes. Each tool uses either Docker or npx:
 
 ## Key Conventions
 
-- **Target frameworks**: `net8.0`, `net9.0`
+- **Target framework**: `net10.0`
 - **Language**: C# preview, nullable reference types, implicit usings
-- **CLI framework**: `System.CommandLine` (beta)
+- **CLI framework**: `System.CommandLine` (stable 2.0.5)
 - **AI abstraction**: `Microsoft.Extensions.AI` (`IChatClient`)
 - **MCP**: `ModelContextProtocol` library for MCP client/transport
 - **Testing**: NUnit with AwesomeAssertions, Moq
