@@ -133,14 +133,17 @@ internal sealed class DoCommandAction(
         };
         var llm = Helpers.GetChatModel(model!, provider, logger, loggerFactory);
 
-        var clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
+        McpClient[] clients = [];
+        try
+        {
+        clients = await Task.WhenAll(tools.Except([Tool.Agents]).Select(async tool =>
         {
             // Get toolsets for this tool if any
             var toolsets = (toolsetsByTool.GetValueOrDefault(tool) ?? [])
                 .Except(["labels"])
                 .ToArray();
 
-            return await McpClientFactory.CreateAsync(
+            return await McpClient.CreateAsync(
                 new StdioClientTransport(
                     tool switch
                     {
@@ -260,7 +263,7 @@ internal sealed class DoCommandAction(
                             ],
                         },
                         _ => throw new ArgumentException($"Unknown tool: {tool}"),
-                    }),
+                    }, loggerFactory),
                 new McpClientOptions
                 {
                     ClientInfo = new Implementation
@@ -269,11 +272,15 @@ internal sealed class DoCommandAction(
                         Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0",
                     },
                     InitializationTimeout = TimeSpan.FromMinutes(10),
-                }).ConfigureAwait(false);
+                },
+                loggerFactory,
+                cancellationToken).ConfigureAwait(false);
         })).ConfigureAwait(false);
 
+        using var listToolsCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        listToolsCts.CancelAfter(TimeSpan.FromMinutes(2));
         var mcpTools = await Task.WhenAll(clients
-            .Select(async client => await client.ListToolsAsync().ConfigureAwait(false)))
+            .Select(async client => await client.ListToolsAsync(cancellationToken: listToolsCts.Token).ConfigureAwait(false)))
             .ConfigureAwait(false);
 
         List<AITool> allTools =
@@ -388,9 +395,17 @@ internal sealed class DoCommandAction(
             output = value?.ToString() ?? string.Empty;
         }
 
-        await Helpers.WriteOutputAsync(output, outputPath, console: parseResult.Configuration.Output, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await Helpers.WriteOutputAsync(output, outputPath, console: parseResult.InvocationConfiguration.Output, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return 0;
+        }
+        finally
+        {
+            foreach (var client in clients)
+            {
+                await client.DisposeAsync().ConfigureAwait(false);
+            }
+        }
 
         [Description("Finds file paths by content.")]
         static async Task<IList<string>> FindFilePathsByContent(
@@ -469,7 +484,8 @@ internal sealed class DoCommandAction(
                          "DocumentConversion - allows to convert document between formats - PDF, markdown, Word etc," +
                          "Agents - allows to spawn new agents,")] string[]? tools = null,
             [Description("The full paths to images.")] string[]? images = null,
-            [Description("The full paths to directories - you need this only if use Filesystem tool.")] string[]? directories = null)
+            [Description("The full paths to directories - you need this only if use Filesystem tool.")] string[]? directories = null,
+            CancellationToken cancellationToken = default)
         {
             var result = await CliWrap.Cli.Wrap(
 #if DEBUG
@@ -487,7 +503,7 @@ internal sealed class DoCommandAction(
                 ])
                 .WithWorkingDirectory(Path.GetFullPath("."))
                 .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync(CancellationToken.None);
+                .ExecuteBufferedAsync(cancellationToken);
 
             return result.StandardOutput;
         }

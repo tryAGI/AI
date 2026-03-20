@@ -82,7 +82,7 @@ internal static class Helpers
             case Provider.Anthropic:
                 {
 #pragma warning disable CA2000
-                    chatClient = new AnthropicClient(apiKey);
+                    chatClient = new AnthropicClient { ApiKey = apiKey }.AsIChatClient(model);
 #pragma warning restore CA2000
                     break;
                 }
