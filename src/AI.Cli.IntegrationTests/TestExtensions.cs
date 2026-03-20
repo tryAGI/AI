@@ -23,11 +23,11 @@ public static class TestExtensions
         //test.Errors.Should().BeEmpty();
 
         // Act
-        var result = await new CommandLineConfiguration(rootCommand)
+        var result = await rootCommand.Parse(arguments).InvokeAsync(new InvocationConfiguration
         {
             Error = errorWriter,
             Output = outputWriter,
-        }.Parse(arguments).InvokeAsync();
+        });
 
         Console.WriteLine(outputWriter.ToString());
         Console.WriteLine(errorWriter.ToString());

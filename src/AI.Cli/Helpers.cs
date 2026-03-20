@@ -57,8 +57,11 @@ internal static class Helpers
         ILogger? logger = null,
         ILoggerFactory? factory = null)
     {
-        logger?.LogInformation("Using provider: {Provider}", provider);
-        logger?.LogInformation("Using model: {Model}", model);
+        if (logger?.IsEnabled(LogLevel.Information) == true)
+        {
+            logger.LogInformation("Using provider: {Provider}", provider);
+            logger.LogInformation("Using model: {Model}", model);
+        }
 
         IChatClient chatClient;
         Uri? endpoint = provider switch

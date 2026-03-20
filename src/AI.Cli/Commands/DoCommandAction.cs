@@ -319,9 +319,12 @@ internal sealed class DoCommandAction(
                 : [],
         ];
 
-        logger.LogInformation("Found {Length} AI functions: {@AiTools}",
-            allTools.Count,
-            allTools);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation("Found {Length} AI functions: {@AiTools}",
+                allTools.Count,
+                allTools);
+        }
 
         var response = await llm.GetResponseAsync(
             new ChatMessage
@@ -370,9 +373,12 @@ internal sealed class DoCommandAction(
                 continue;
             }
             
-            logger.LogInformation("{Role}: {Content}",
-                message.Role.Value,
-                content);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("{Role}: {Content}",
+                    message.Role.Value,
+                    content);
+            }
         }
 
         var output = response.Text;
@@ -489,7 +495,7 @@ internal sealed class DoCommandAction(
         {
             var result = await CliWrap.Cli.Wrap(
 #if DEBUG
-                "/Users/havendv/GitHub/tryAGI/AI/src/AI.Cli/bin/Debug/net9.0/AI.CLI"
+                "/Users/havendv/GitHub/tryAGI/AI/src/AI.Cli/bin/Debug/net10.0/AI.CLI"
 #else
                 "ai"
 #endif
