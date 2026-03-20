@@ -7,9 +7,7 @@ using OpenAI;
 
 namespace AI.Cli;
 
-#pragma warning disable CA1848
-
-internal static class Helpers
+internal static partial class Helpers
 {
     public static async Task<string> ReadInputAsync(string input, FileInfo? inputPath, CancellationToken cancellationToken = default)
     {
@@ -57,10 +55,10 @@ internal static class Helpers
         ILogger? logger = null,
         ILoggerFactory? factory = null)
     {
-        if (logger?.IsEnabled(LogLevel.Information) == true)
+        if (logger is not null)
         {
-            logger.LogInformation("Using provider: {Provider}", provider);
-            logger.LogInformation("Using model: {Model}", model);
+            LogUsingProvider(logger, provider);
+            LogUsingModel(logger, model);
         }
 
         IChatClient chatClient;
@@ -115,4 +113,10 @@ internal static class Helpers
 
         return client;
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Using provider: {Provider}")]
+    private static partial void LogUsingProvider(ILogger logger, Provider provider);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Using model: {Model}")]
+    private static partial void LogUsingModel(ILogger logger, string model);
 }

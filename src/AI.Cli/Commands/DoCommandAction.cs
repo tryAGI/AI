@@ -21,10 +21,9 @@ using Tool = AI.Cli.Models.Tool;
 
 namespace AI.Cli.Commands;
 
-#pragma warning disable CA1848
 #pragma warning disable CA1861
 
-internal sealed class DoCommandAction(
+internal sealed partial class DoCommandAction(
     ILogger<DoCommandAction> logger,
     ILoggerFactory loggerFactory) : AsynchronousCommandLineAction
 {
@@ -321,9 +320,8 @@ internal sealed class DoCommandAction(
 
         if (logger.IsEnabled(LogLevel.Information))
         {
-            logger.LogInformation("Found {Length} AI functions: {@AiTools}",
-                allTools.Count,
-                allTools);
+            var aiToolNames = string.Join(", ", allTools);
+            LogFoundAiFunctions(logger, allTools.Count, aiToolNames);
         }
 
         var response = await llm.GetResponseAsync(
@@ -373,12 +371,7 @@ internal sealed class DoCommandAction(
                 continue;
             }
             
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation("{Role}: {Content}",
-                    message.Role.Value,
-                    content);
-            }
+            LogRoleContent(logger, message.Role.Value, content);
         }
 
         var output = response.Text;
@@ -542,4 +535,10 @@ internal sealed class DoCommandAction(
     public static ChatResponseFormatJson Markdown { get; } = ChatResponseFormatForType<MarkdownSchema>(
         schemaName: "MarkdownSchema",
         schemaDescription: "Markdown schema. Use this schema to generate markdown.");
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Found {Count} AI functions: {AiTools}")]
+    private static partial void LogFoundAiFunctions(ILogger logger, int count, string aiTools);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{Role}: {Content}")]
+    private static partial void LogRoleContent(ILogger logger, string role, string content);
 }
