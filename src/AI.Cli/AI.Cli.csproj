@@ -21,8 +21,8 @@
 
     <ItemGroup>
         <PackageReference Include="CliWrap" Version="3.10.1" />
-        <PackageReference Include="Microsoft.Extensions.AI" Version="10.4.1" />
-        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.4.1" />
+        <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.0" />
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.6" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.6" />
