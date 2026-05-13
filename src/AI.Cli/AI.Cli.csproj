@@ -21,15 +21,15 @@
 
     <ItemGroup>
         <PackageReference Include="CliWrap" Version="3.10.1" />
-        <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.2" />
-        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.2" />
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.7" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+        <PackageReference Include="Microsoft.Extensions.AI" Version="10.6.0" />
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.6.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
         <PackageReference Include="ModelContextProtocol" Version="1.3.0" />
         <PackageReference Include="Octokit" Version="14.0.0" />
-        <PackageReference Include="System.CommandLine" Version="2.0.7" />
+        <PackageReference Include="System.CommandLine" Version="2.0.8" />
 
         <PackageReference Include="tryAGI.OpenAI" Version="4.2.4" />
         <PackageReference Include="Anthropic" Version="12.20.1" />
