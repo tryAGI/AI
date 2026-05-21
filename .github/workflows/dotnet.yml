@@ -5,15 +5,14 @@ on:
       - main
     tags:
       - v**
+  workflow_dispatch:
 
 jobs:
   publish:
     name: Publish
-    uses: HavenDV/workflows/.github/workflows/dotnet_build-test-publish.yml@main
+    uses: tryAGI/workflows/.github/workflows/dotnet-sdk-build-test-publish.yml@main
     with:
       dotnet-version: 10.0.x
-      generate-build-number: false
-      conventional-commits-publish-conditions: false
       additional-test-arguments: '--logger GitHubActions'
     secrets:
       nuget-key: ${{ secrets.NUGET_KEY }}
