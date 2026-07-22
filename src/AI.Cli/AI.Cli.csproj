@@ -21,8 +21,8 @@
 
     <ItemGroup>
         <PackageReference Include="CliWrap" Version="3.10.2" />
-        <PackageReference Include="Microsoft.Extensions.AI" Version="10.8.0" />
-        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.8.0" />
+        <PackageReference Include="Microsoft.Extensions.AI" Version="10.8.1" />
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.8.1" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.10" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
@@ -32,7 +32,7 @@
         <PackageReference Include="System.CommandLine" Version="2.0.10" />
 
         <PackageReference Include="tryAGI.OpenAI" Version="4.2.9" />
-        <PackageReference Include="Anthropic" Version="12.36.0" />
+        <PackageReference Include="Anthropic" Version="12.36.1" />
     </ItemGroup>
 
     <ItemGroup>
