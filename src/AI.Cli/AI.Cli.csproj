@@ -32,7 +32,7 @@
         <PackageReference Include="System.CommandLine" Version="2.0.10" />
 
         <PackageReference Include="tryAGI.OpenAI" Version="4.2.9" />
-        <PackageReference Include="Anthropic" Version="12.37.0" />
+        <PackageReference Include="Anthropic" Version="12.38.0" />
     </ItemGroup>
 
     <ItemGroup>
