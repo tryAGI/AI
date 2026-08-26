@@ -31,8 +31,8 @@
         <PackageReference Include="Octokit" Version="14.0.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.11" />
 
-        <PackageReference Include="tryAGI.OpenAI" Version="4.2.9" />
-        <PackageReference Include="Anthropic" Version="12.42.0" />
+        <PackageReference Include="tryAGI.OpenAI" Version="4.2.10" />
+        <PackageReference Include="Anthropic" Version="12.42.1" />
     </ItemGroup>
 
     <ItemGroup>
