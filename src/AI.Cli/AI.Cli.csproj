@@ -27,12 +27,12 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.13" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.13" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
-        <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
+        <PackageReference Include="ModelContextProtocol" Version="2.3.0" />
         <PackageReference Include="Octokit" Version="14.0.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.13" />
 
         <PackageReference Include="tryAGI.OpenAI" Version="4.2.10" />
-        <PackageReference Include="Anthropic" Version="12.58.0" />
+        <PackageReference Include="Anthropic" Version="12.60.0" />
     </ItemGroup>
 
     <ItemGroup>
