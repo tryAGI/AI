@@ -21,7 +21,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Moq" Version="4.21.0" />
-        <PackageReference Include="System.CommandLine" Version="2.0.13" />
+        <PackageReference Include="System.CommandLine" Version="2.0.14" />
     </ItemGroup>
 
     <ItemGroup Label="GlobalUsings">
