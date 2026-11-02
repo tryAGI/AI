@@ -7,6 +7,11 @@ on:
       - v**
   workflow_dispatch:
 
+# The reusable's nested auto-stable-release job asks for contents: write; a called
+# workflow cannot raise the caller's (read-only default) permissions.
+permissions:
+  contents: write
+
 jobs:
   publish:
     name: Publish
